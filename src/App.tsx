@@ -6,6 +6,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { 
   Download, 
+  Upload,
   Printer, 
   RotateCcw, 
   User, 
@@ -91,8 +92,9 @@ const initialFormData: FormData = {
 
 export default function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [loginData, setLoginData] = useState({ username: '', password: '' });
+  const [loginData, setLoginData] = useState({ username: '', password: '', companyName: '' });
   const [loginError, setLoginError] = useState('');
+  const [currentUser, setCurrentUser] = useState('');
   const [savedQuotes, setSavedQuotes] = useState<any[]>([]);
   const [showSavedQuotes, setShowSavedQuotes] = useState(false);
 
@@ -109,9 +111,21 @@ export default function App() {
 
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
-    if (loginData.username === 'Noel' && loginData.password === 'admin@userNOEL') {
+    const users = [
+      { username: 'Noel', password: 'admin@userNOEL' },
+      { username: 'admin', password: 'admin@user' }
+    ];
+
+    const user = users.find(u => u.username === loginData.username && u.password === loginData.password);
+
+    if (user) {
       setIsLoggedIn(true);
+      setCurrentUser(user.username);
       setLoginError('');
+      // If company name was provided, update the form data
+      if (loginData.companyName) {
+        setFormData(prev => ({ ...prev, companyName: loginData.companyName }));
+      }
     } else {
       setLoginError('Invalid credentials. Please try again.');
     }
@@ -119,7 +133,8 @@ export default function App() {
 
   const handleLogout = () => {
     setIsLoggedIn(false);
-    setLoginData({ username: '', password: '' });
+    setCurrentUser('');
+    setLoginData({ username: '', password: '', companyName: '' });
   };
 
   useEffect(() => {
@@ -186,9 +201,20 @@ export default function App() {
     });
   }, [formData]);
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
+  };
+
+  const handleLogoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setFormData(prev => ({ ...prev, logoUrl: reader.result as string }));
+      };
+      reader.readAsDataURL(file);
+    }
   };
 
   const handleItemChange = (id: string, field: keyof QuoteItem, value: string) => {
@@ -240,7 +266,7 @@ export default function App() {
   };
 
   const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('en-NG', {
+    return new Intl.NumberFormat('en-PH', {
       minimumFractionDigits: 0,
       maximumFractionDigits: 0,
     }).format(amount);
@@ -285,6 +311,16 @@ export default function App() {
                 onChange={(e) => setLoginData({ ...loginData, password: e.target.value })}
               />
             </div>
+            <div>
+              <label className="block text-xs font-bold text-slate-500 uppercase mb-2">Company Name</label>
+              <input
+                type="text"
+                className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none transition-all"
+                placeholder="Enter company name"
+                value={loginData.companyName}
+                onChange={(e) => setLoginData({ ...loginData, companyName: e.target.value })}
+              />
+            </div>
             <button
               type="submit"
               className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-4 rounded-xl shadow-lg shadow-emerald-200 transition-all transform active:scale-[0.98]"
@@ -311,7 +347,7 @@ export default function App() {
             </div>
             <div>
               <p className="text-xs font-bold text-slate-400 uppercase leading-none">Admin Dashboard</p>
-              <p className="text-sm font-bold text-slate-700">Welcome, Noel</p>
+              <p className="text-sm font-bold text-slate-700">Welcome, {currentUser}</p>
             </div>
           </div>
           <div className="flex items-center gap-3 w-full sm:w-auto justify-between sm:justify-end">
@@ -527,7 +563,7 @@ export default function App() {
                         />
                       </div>
                       <div>
-                        <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Price (₦)</label>
+                        <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Price (₱)</label>
                         <input 
                           type="number" 
                           value={item.pricePerUnit} 
@@ -549,8 +585,20 @@ export default function App() {
               </h2>
               <div className="grid grid-cols-1 gap-4">
                 <div>
-                  <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Logo URL</label>
-                  <input type="text" name="logoUrl" value={formData.logoUrl} onChange={handleInputChange} className="w-full px-3 py-2 rounded border border-slate-200 text-sm" placeholder="https://..." />
+                  <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Company Logo</label>
+                  <div className="flex flex-col gap-2">
+                    <div className="flex items-center gap-2">
+                      <label className="flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded border border-dashed border-slate-300 hover:border-emerald-500 hover:bg-emerald-50 cursor-pointer transition-all text-sm text-slate-600">
+                        <Upload className="w-4 h-4" />
+                        <span>Upload Local Logo</span>
+                        <input type="file" accept="image/*" onChange={handleLogoUpload} className="hidden" />
+                      </label>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-[10px] font-bold text-slate-400 uppercase">OR URL:</span>
+                      <input type="text" name="logoUrl" value={formData.logoUrl} onChange={handleInputChange} className="flex-1 px-3 py-2 rounded border border-slate-200 text-sm" placeholder="https://..." />
+                    </div>
+                  </div>
                 </div>
                 <div>
                   <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Main Title</label>
@@ -574,19 +622,19 @@ export default function App() {
               </h2>
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Labour (₦)</label>
+                  <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Labour (₱)</label>
                   <input type="number" name="laborCost" value={formData.laborCost} onChange={handleInputChange} className="w-full px-3 py-2 rounded border border-slate-200 text-sm" />
                 </div>
                 <div>
-                  <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Cutting Fee (₦)</label>
+                  <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Cutting Fee (₱)</label>
                   <input type="number" name="cuttingFee" value={formData.cuttingFee} onChange={handleInputChange} className="w-full px-3 py-2 rounded border border-slate-200 text-sm" />
                 </div>
                 <div>
-                  <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Transportation (₦)</label>
+                  <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Transportation (₱)</label>
                   <input type="number" name="transportationFee" value={formData.transportationFee} onChange={handleInputChange} className="w-full px-3 py-2 rounded border border-slate-200 text-sm" />
                 </div>
                 <div>
-                  <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Discount (₦)</label>
+                  <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Discount (₱)</label>
                   <input type="number" name="discount" value={formData.discount} onChange={handleInputChange} className="w-full px-3 py-2 rounded border border-slate-200 text-sm" />
                 </div>
                 <div className="col-span-2">
@@ -747,7 +795,7 @@ export default function App() {
                     <tr>
                       <td className="border border-black px-1 py-1" colSpan={2}></td>
                       <td className="border border-black px-2 py-1 text-right font-bold uppercase italic">Section total</td>
-                      <td className="border border-black px-2 py-1 text-center font-bold text-lg">₦</td>
+                      <td className="border border-black px-2 py-1 text-center font-bold text-lg">₱</td>
                       <td className="border border-black px-2 py-1 text-right font-bold text-lg bg-slate-200">
                         {formatCurrency(totals.finalPrice)}
                       </td>
