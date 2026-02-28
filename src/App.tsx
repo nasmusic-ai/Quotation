@@ -5,6 +5,12 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { 
+  Menu,
+  X,
+  Home,
+  CheckCircle,
+  ArrowRight,
+  Star,
   Download, 
   Upload,
   Printer, 
@@ -24,6 +30,7 @@ import {
   LogOut,
   LayoutDashboard
 } from 'lucide-react';
+import { motion, AnimatePresence } from 'motion/react';
 import html2canvas from 'html2canvas';
 
 interface QuoteItem {
@@ -87,6 +94,8 @@ const initialFormData: FormData = {
 };
 
 export default function App() {
+  const [view, setView] = useState<'home' | 'login'>('home');
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [loginData, setLoginData] = useState({ username: '', password: '', companyName: '' });
   const [loginError, setLoginError] = useState('');
@@ -118,6 +127,7 @@ export default function App() {
       setIsLoggedIn(true);
       setCurrentUser(user.username);
       setLoginError('');
+      setIsSidebarOpen(false);
       // If company name was provided, update the form data
       if (loginData.companyName) {
         setFormData(prev => ({ ...prev, companyName: loginData.companyName }));
@@ -130,6 +140,7 @@ export default function App() {
   const handleLogout = () => {
     setIsLoggedIn(false);
     setCurrentUser('');
+    setView('home');
     setLoginData({ username: '', password: '', companyName: '' });
   };
 
@@ -268,66 +279,311 @@ export default function App() {
     }).format(amount);
   };
 
-  if (!isLoggedIn) {
+  if (!isLoggedIn && view === 'home') {
     return (
-      <div className="min-h-screen bg-slate-900 flex items-center justify-center p-4">
-        <div className="max-w-md w-full bg-white rounded-2xl shadow-2xl overflow-hidden">
-          <div className="bg-emerald-600 p-8 text-center">
-            <div className="inline-flex items-center justify-center w-16 h-16 bg-white/20 rounded-full mb-4">
-              <Lock className="w-8 h-8 text-white" />
-            </div>
-            <h2 className="text-2xl font-bold text-white">Admin Login</h2>
-            <p className="text-emerald-100 mt-1">M&N Modular Cabinet Installer</p>
-          </div>
-          <form onSubmit={handleLogin} className="p-8 space-y-6">
-            {loginError && (
-              <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-lg text-sm">
-                {loginError}
+      <div className="min-h-screen bg-slate-50 font-sans selection:bg-emerald-100 selection:text-emerald-900">
+        {/* Navigation */}
+        <nav className="fixed top-0 left-0 right-0 z-50 bg-white/80 backdrop-blur-md border-b border-slate-200">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="flex justify-between items-center h-16">
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-8 bg-emerald-600 rounded-lg flex items-center justify-center">
+                  <LayoutDashboard className="w-5 h-5 text-white" />
+                </div>
+                <span className="font-bold text-slate-900 tracking-tight">Smile Quotation Generator</span>
               </div>
+              
+              <button 
+                onClick={() => setIsSidebarOpen(true)}
+                className="p-2 rounded-lg hover:bg-slate-100 transition-colors text-slate-600"
+              >
+                <Menu className="w-6 h-6" />
+              </button>
+            </div>
+          </div>
+        </nav>
+
+        {/* Sidebar Overlay */}
+        <AnimatePresence>
+          {isSidebarOpen && (
+            <>
+              <motion.div 
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                onClick={() => setIsSidebarOpen(false)}
+                className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-[60]"
+              />
+              <motion.div 
+                initial={{ x: '100%' }}
+                animate={{ x: 0 }}
+                exit={{ x: '100%' }}
+                transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+                className="fixed top-0 right-0 bottom-0 w-80 bg-white z-[70] shadow-2xl p-6 flex flex-col"
+              >
+                <div className="flex justify-between items-center mb-8">
+                  <span className="font-bold text-slate-900">Menu</span>
+                  <button onClick={() => setIsSidebarOpen(false)} className="p-2 rounded-lg hover:bg-slate-100 transition-colors">
+                    <X className="w-5 h-5 text-slate-500" />
+                  </button>
+                </div>
+                
+                <div className="space-y-2 flex-1">
+                  <button 
+                    onClick={() => { setView('home'); setIsSidebarOpen(false); }}
+                    className="w-full flex items-center gap-3 px-4 py-3 rounded-xl bg-slate-50 text-emerald-600 font-medium"
+                  >
+                    <Home className="w-5 h-5" />
+                    Home
+                  </button>
+                  <button 
+                    onClick={() => { setView('login'); setIsSidebarOpen(false); }}
+                    className="w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-slate-50 text-slate-600 font-medium transition-colors"
+                  >
+                    <Lock className="w-5 h-5" />
+                    Admin Login
+                  </button>
+                </div>
+
+                <div className="pt-6 border-t border-slate-100">
+                  <p className="text-xs text-slate-400 uppercase font-bold mb-4 px-4">Support</p>
+                  <a href="mailto:faithwins.finebone@gmail.com" className="flex items-center gap-3 px-4 py-3 text-slate-600 hover:text-emerald-600 transition-colors text-sm">
+                    <Mail className="w-4 h-4" />
+                    Contact Support
+                  </a>
+                </div>
+              </motion.div>
+            </>
+          )}
+        </AnimatePresence>
+
+        {/* Hero Section */}
+        <main className="pt-24 pb-16">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="grid lg:grid-cols-2 gap-12 items-center">
+              <motion.div 
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5 }}
+              >
+                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-100 text-emerald-700 text-xs font-bold uppercase tracking-wider mb-6">
+                  <Star className="w-3 h-3 fill-emerald-700" />
+                  Professional Quotation System
+                </div>
+                <h1 className="text-5xl sm:text-6xl font-extrabold text-slate-900 leading-[1.1] mb-6 tracking-tight">
+                  Quotation Form <span className="text-emerald-600">Genarator</span>.
+                </h1>
+                <p className="text-lg text-slate-600 mb-8 leading-relaxed max-w-lg">
+                  Professional, precise, and professional-grade quotation generator designed specifically for freelancer, or small business owner.
+                </p>
+                <div className="flex flex-wrap gap-4">
+                  <button 
+                    onClick={() => setView('login')}
+                    className="px-8 py-4 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-2xl shadow-xl shadow-emerald-200 transition-all transform hover:-translate-y-1 flex items-center gap-2"
+                  >
+                    Get Started Now
+                    <ArrowRight className="w-5 h-5" />
+                  </button>
+                  <div className="flex -space-x-3 items-center">
+                    {[1,2,3,4].map(i => (
+                      <img key={i} src={`https://picsum.photos/seed/user${i}/100/100`} className="w-10 h-10 rounded-full border-2 border-white shadow-sm" referrerPolicy="no-referrer" />
+                    ))}
+                    <div className="pl-6 text-sm font-medium text-slate-500">
+                      Trusted by <span className="text-slate-900 font-bold">50+</span> installers
+                    </div>
+                  </div>
+                </div>
+              </motion.div>
+
+              <motion.div 
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ duration: 0.5, delay: 0.2 }}
+                className="relative"
+              >
+                <div className="absolute -inset-4 bg-emerald-500/10 rounded-[2rem] blur-3xl" />
+                <div className="relative bg-white rounded-3xl shadow-2xl border border-slate-200 overflow-hidden">
+                  <div className="bg-slate-50 px-6 py-4 border-b border-slate-200 flex items-center justify-between">
+                    <div className="flex gap-1.5">
+                      <div className="w-3 h-3 rounded-full bg-red-400" />
+                      <div className="w-3 h-3 rounded-full bg-amber-400" />
+                      <div className="w-3 h-3 rounded-full bg-emerald-400" />
+                    </div>
+                    <span className="text-xs font-bold text-slate-400 uppercase tracking-widest">Sample Quotation</span>
+                  </div>
+                  <div className="p-4 sm:p-8">
+                    <img 
+                      src="https://raw.githubusercontent.com/VTQIT/metal-gear-map/main/Quote-289799-Client.jpg" 
+                      alt="Sample Quotation" 
+                      className="w-full rounded-xl shadow-sm border border-slate-100"
+                      referrerPolicy="no-referrer"
+                    />
+                  </div>
+                </div>
+              </motion.div>
+            </div>
+
+            {/* Features */}
+            <div className="mt-24 grid sm:grid-cols-3 gap-8">
+              {[
+                { title: 'Instant JPG', desc: 'Download professional quotations as high-quality images ready for WhatsApp or Email.', icon: Download },
+                { title: 'Mobile Ready', desc: 'Fully responsive design works perfectly on phones, tablets, and webviews.', icon: Maximize },
+                { title: 'Smart CMS', desc: 'Save and manage your quotations in a secure dashboard for easy retrieval.', icon: LayoutDashboard },
+              ].map((feature, i) => (
+                <motion.div 
+                  key={i}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.4 + (i * 0.1) }}
+                  className="p-8 rounded-3xl bg-white border border-slate-200 hover:border-emerald-500/50 transition-colors group"
+                >
+                  <div className="w-12 h-12 bg-emerald-50 rounded-2xl flex items-center justify-center mb-6 group-hover:bg-emerald-600 transition-colors">
+                    <feature.icon className="w-6 h-6 text-emerald-600 group-hover:text-white transition-colors" />
+                  </div>
+                  <h3 className="text-xl font-bold text-slate-900 mb-3">{feature.title}</h3>
+                  <p className="text-slate-600 leading-relaxed">{feature.desc}</p>
+                </motion.div>
+              ))}
+            </div>
+
+            {/* Marketing Section */}
+            <div className="mt-24 rounded-[3rem] bg-slate-900 p-12 sm:p-20 overflow-hidden relative">
+              <div className="absolute top-0 right-0 w-1/2 h-full bg-emerald-600/20 blur-[120px]" />
+              <div className="relative z-10 grid lg:grid-cols-2 gap-12 items-center">
+                <div>
+                  <h2 className="text-4xl sm:text-5xl font-bold text-white mb-6 leading-tight">
+                    Scale your cabinet business with <span className="text-emerald-400">precision.</span>
+                  </h2>
+                  <div className="space-y-4 mb-8">
+                    {['Professional Branding', 'Automatic Calculations', 'Client Management', 'Secure Access'].map((item, i) => (
+                      <div key={i} className="flex items-center gap-3 text-slate-300">
+                        <CheckCircle className="w-5 h-5 text-emerald-400" />
+                        <span className="font-medium">{item}</span>
+                      </div>
+                    ))}
+                  </div>
+                  <button 
+                    onClick={() => setView('login')}
+                    className="px-8 py-4 bg-white text-slate-900 font-bold rounded-2xl hover:bg-emerald-50 transition-all transform hover:-translate-y-1"
+                  >
+                    Start for Free
+                  </button>
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <img src="https://picsum.photos/seed/marketing1/400/600" className="rounded-2xl shadow-2xl transform -rotate-3" referrerPolicy="no-referrer" />
+                  <img src="https://picsum.photos/seed/marketing2/400/600" className="rounded-2xl shadow-2xl transform rotate-3 mt-12" referrerPolicy="no-referrer" />
+                </div>
+              </div>
+            </div>
+          </div>
+        </main>
+
+        {/* Footer */}
+        <footer className="bg-white border-t border-slate-200 py-12">
+          <div className="max-w-7xl mx-auto px-4 text-center">
+            <div className="flex justify-center items-center gap-2 mb-6">
+              <div className="w-6 h-6 bg-emerald-600 rounded flex items-center justify-center">
+                <LayoutDashboard className="w-4 h-4 text-white" />
+              </div>
+              <span className="font-bold text-slate-900">Smile Quotation Generator</span>
+            </div>
+            <p className="text-slate-500 text-sm">© 2026 Smile Quotation Generator. All rights reserved.</p>
+          </div>
+        </footer>
+      </div>
+    );
+  }
+
+  if (!isLoggedIn && view === 'login') {
+    return (
+      <div className="min-h-screen bg-slate-900 flex items-center justify-center p-4 relative overflow-hidden">
+        {/* Background Accents */}
+        <div className="absolute top-0 left-0 w-full h-full">
+          <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-emerald-600/20 blur-[120px] rounded-full" />
+          <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-blue-600/20 blur-[120px] rounded-full" />
+        </div>
+
+        <motion.div 
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          className="max-w-md w-full bg-white rounded-[2.5rem] shadow-2xl overflow-hidden relative z-10"
+        >
+          <div className="bg-emerald-600 p-10 text-center relative overflow-hidden">
+            <button 
+              onClick={() => setView('home')}
+              className="absolute top-6 left-6 p-2 rounded-full bg-white/10 text-white hover:bg-white/20 transition-colors"
+            >
+              <ArrowRight className="w-5 h-5 rotate-180" />
+            </button>
+            <div className="inline-flex items-center justify-center w-20 h-20 bg-white/20 rounded-3xl mb-6 backdrop-blur-md">
+              <Lock className="w-10 h-10 text-white" />
+            </div>
+            <h2 className="text-3xl font-bold text-white tracking-tight">Admin Portal</h2>
+            <p className="text-emerald-100 mt-2 font-medium">Secure access for authorized installers</p>
+          </div>
+          <form onSubmit={handleLogin} className="p-10 space-y-6">
+            {loginError && (
+              <motion.div 
+                initial={{ opacity: 0, x: -10 }}
+                animate={{ opacity: 1, x: 0 }}
+                className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-2xl text-sm font-medium flex items-center gap-2"
+              >
+                <X className="w-4 h-4" />
+                {loginError}
+              </motion.div>
             )}
             <div>
-              <label className="block text-xs font-bold text-slate-500 uppercase mb-2">Username</label>
-              <input
-                type="text"
-                required
-                className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none transition-all"
-                placeholder="Enter username"
-                value={loginData.username}
-                onChange={(e) => setLoginData({ ...loginData, username: e.target.value })}
-              />
+              <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 ml-1">Username</label>
+              <div className="relative">
+                <User className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
+                <input
+                  type="text"
+                  required
+                  className="w-full pl-12 pr-4 py-4 rounded-2xl border border-slate-200 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none transition-all bg-slate-50"
+                  placeholder="Enter username"
+                  value={loginData.username}
+                  onChange={(e) => setLoginData({ ...loginData, username: e.target.value })}
+                />
+              </div>
             </div>
             <div>
-              <label className="block text-xs font-bold text-slate-500 uppercase mb-2">Password</label>
-              <input
-                type="password"
-                required
-                className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none transition-all"
-                placeholder="Enter password"
-                value={loginData.password}
-                onChange={(e) => setLoginData({ ...loginData, password: e.target.value })}
-              />
+              <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 ml-1">Password</label>
+              <div className="relative">
+                <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
+                <input
+                  type="password"
+                  required
+                  className="w-full pl-12 pr-4 py-4 rounded-2xl border border-slate-200 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none transition-all bg-slate-50"
+                  placeholder="Enter password"
+                  value={loginData.password}
+                  onChange={(e) => setLoginData({ ...loginData, password: e.target.value })}
+                />
+              </div>
             </div>
             <div>
-              <label className="block text-xs font-bold text-slate-500 uppercase mb-2">Company Name</label>
-              <input
-                type="text"
-                className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none transition-all"
-                placeholder="Enter company name"
-                value={loginData.companyName}
-                onChange={(e) => setLoginData({ ...loginData, companyName: e.target.value })}
-              />
+              <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 ml-1">Company Name</label>
+              <div className="relative">
+                <LayoutDashboard className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
+                <input
+                  type="text"
+                  className="w-full pl-12 pr-4 py-4 rounded-2xl border border-slate-200 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none transition-all bg-slate-50"
+                  placeholder="Enter company name"
+                  value={loginData.companyName}
+                  onChange={(e) => setLoginData({ ...loginData, companyName: e.target.value })}
+                />
+              </div>
             </div>
             <button
               type="submit"
-              className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-4 rounded-xl shadow-lg shadow-emerald-200 transition-all transform active:scale-[0.98]"
+              className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-5 rounded-2xl shadow-xl shadow-emerald-200 transition-all transform active:scale-[0.98] mt-4"
             >
-              Sign In
+              Sign In to Dashboard
             </button>
+            <p className="text-center text-slate-400 text-xs font-medium">
+              Forgot credentials? Contact <a href="#" className="text-emerald-600 hover:underline">Support</a>
+            </p>
           </form>
-          <div className="p-6 bg-slate-50 border-t border-slate-100 text-center">
-            <p className="text-xs text-slate-400">© 2024 M&N Modular Cabinet Installer. All rights reserved.</p>
-          </div>
-        </div>
+        </motion.div>
       </div>
     );
   }
