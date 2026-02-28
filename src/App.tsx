@@ -54,8 +54,6 @@ interface FormData {
   contactInfo: string;
   logoUrl: string;
   quotationTitle: string;
-  section1Header: string;
-  section1SubHeader: string;
 }
 
 const createNewItem = (): QuoteItem => ({
@@ -84,10 +82,8 @@ const initialFormData: FormData = {
   preparedBy: 'FINEBONE, FAITHWINS.',
   preparedFor: '',
   contactInfo: '08065875856, E-mail: faithwins.finebone@gmail.com',
-  logoUrl: 'https://github.com/VTQIT/metal-gear-map/blob/main/M&N.jpg?raw=true',
+  logoUrl: 'https://raw.githubusercontent.com/VTQIT/metal-gear-map/main/M&N.jpg',
   quotationTitle: 'QUOTATION FOR PROCESSING AND INSTALLATION OF WOODEN KITCHEN CABINET AND ACCESSORIES.',
-  section1Header: 'FABRICATION AND INSTALLATION OF A KITCHEN CABINET (TOP AND BASE)',
-  section1SubHeader: 'DESCRIPTION',
 };
 
 export default function App() {
@@ -604,14 +600,6 @@ export default function App() {
                   <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Main Title</label>
                   <textarea name="quotationTitle" value={formData.quotationTitle} onChange={(e: any) => handleInputChange(e)} className="w-full px-3 py-2 rounded border border-slate-200 text-sm h-20" />
                 </div>
-                <div>
-                  <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Section 1 Header</label>
-                  <input type="text" name="section1Header" value={formData.section1Header} onChange={handleInputChange} className="w-full px-3 py-2 rounded border border-slate-200 text-sm" />
-                </div>
-                <div>
-                  <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Description Sub-header</label>
-                  <input type="text" name="section1SubHeader" value={formData.section1SubHeader} onChange={handleInputChange} className="w-full px-3 py-2 rounded border border-slate-200 text-sm" />
-                </div>
               </div>
             </div>
 
@@ -687,6 +675,10 @@ export default function App() {
                       alt="Company Logo" 
                       className="w-full h-full object-contain"
                       referrerPolicy="no-referrer"
+                      crossOrigin="anonymous"
+                      onError={(e) => {
+                        (e.target as HTMLImageElement).src = 'https://picsum.photos/seed/mncabinet/200/200';
+                      }}
                     />
                   </div>
                   <div className="flex-grow text-center">
@@ -702,27 +694,9 @@ export default function App() {
                     <tr className="font-bold">
                       <th className="border border-black px-1 py-1 w-10 text-center">S/N</th>
                       <th className="border border-black px-1 py-1 w-12 text-center">QTY</th>
-                      <th className="border border-black px-2 py-1 text-center">SECTION 1</th>
+                      <th className="border border-black px-2 py-1 text-center uppercase">Description</th>
                       <th className="border border-black px-2 py-1 w-24 text-center uppercase">Amt/Unit</th>
                       <th className="border border-black px-2 py-1 w-24 text-center uppercase">Amount</th>
-                    </tr>
-                    <tr className="font-bold">
-                      <th className="border border-black px-1 py-1"></th>
-                      <th className="border border-black px-1 py-1"></th>
-                      <th className="border border-black px-2 py-1 text-left uppercase">
-                        {formData.section1Header}
-                      </th>
-                      <th className="border border-black px-1 py-1"></th>
-                      <th className="border border-black px-1 py-1"></th>
-                    </tr>
-                    <tr className="font-bold">
-                      <th className="border border-black px-1 py-1"></th>
-                      <th className="border border-black px-1 py-1"></th>
-                      <th className="border border-black px-2 py-1 text-center underline uppercase">
-                        {formData.section1SubHeader}
-                      </th>
-                      <th className="border border-black px-1 py-1"></th>
-                      <th className="border border-black px-1 py-1"></th>
                     </tr>
                   </thead>
                   <tbody>
@@ -762,7 +736,7 @@ export default function App() {
                     {/* Summary Section */}
                     <tr className="font-bold">
                       <td className="border border-black px-1 py-1" colSpan={2}></td>
-                      <td className="border border-black px-2 py-1 underline uppercase">SUMMARY - SECTION 1</td>
+                      <td className="border border-black px-2 py-1 underline uppercase">SUMMARY</td>
                       <td className="border border-black px-1 py-1"></td>
                       <td className="border border-black px-1 py-1"></td>
                     </tr>
